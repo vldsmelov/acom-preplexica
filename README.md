@@ -93,6 +93,28 @@ There are mainly 2 ways of installing Perplexica - With Docker, Without Docker. 
 
 **Note**: After the containers are built, you can start Perplexica directly from Docker without having to open a terminal.
 
+### Docker-Only Setup (LiteLLM + RU defaults)
+
+If you want to run everything through Docker Compose without installing runtime dependencies on your host:
+
+1. Copy root env template:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Set the values in `.env`:
+   - `LITELLM_BASE_URL`
+   - `LITELLM_MASTER_KEY`
+   - `SEARCH_LANGUAGE=ru-RU`
+   - `WEB_SEARCH_ENGINES` (comma-separated, optional)
+
+3. Start/rebuild:
+
+   ```bash
+   docker compose up -d --build
+   ```
+
 ### Non-Docker Installation
 
 1. Install SearXNG and allow `JSON` format in the SearXNG settings.

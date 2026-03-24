@@ -16,6 +16,10 @@ services:
     image: itzcrazykns1337/perplexica-backend:main
     environment:
       - SEARXNG_API_URL=http://searxng:8080
+      - LITELLM_BASE_URL=${LITELLM_BASE_URL:-}
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-}
+      - SEARCH_LANGUAGE=${SEARCH_LANGUAGE:-ru-RU}
+      - WEB_SEARCH_ENGINES=${WEB_SEARCH_ENGINES:-}
     depends_on:
       - searxng
     ports:
@@ -35,8 +39,8 @@ services:
       context: .
       dockerfile: app.dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=http://127.0.0.1:3001/api
-        - NEXT_PUBLIC_WS_URL=ws://127.0.0.1:3001
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://127.0.0.1:3001/api}
+        - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL:-ws://127.0.0.1:3001}
     image: itzcrazykns1337/perplexica-frontend:main
     depends_on:
       - perplexica-backend
