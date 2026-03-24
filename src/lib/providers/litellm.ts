@@ -12,19 +12,32 @@ type LiteLLMModel = {
 const extractModelId = (model: LiteLLMModel) =>
   model.id || model.model || model.name;
 
+const stripTrailingSlash = (url: string) => url.replace(/\/+$/, '');
+
 export const loadLiteLLMChatModels = async () => {
-  const liteLLMApiEndpoint = getLiteLLMApiEndpoint();
+  const liteLLMApiEndpoint = stripTrailingSlash(getLiteLLMApiEndpoint());
   const liteLLMApiKey = getLiteLLMApiKey();
 
   if (!liteLLMApiEndpoint || !liteLLMApiKey) return {};
 
   try {
-    const response = await axios.get(`${liteLLMApiEndpoint}/models`, {
-      headers: {
-        Authorization: `Bearer ${liteLLMApiKey}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    let response;
+
+    try {
+      response = await axios.get(`${liteLLMApiEndpoint}/models`, {
+        headers: {
+          Authorization: `Bearer ${liteLLMApiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch {
+      response = await axios.get(`${liteLLMApiEndpoint}/v1/models`, {
+        headers: {
+          Authorization: `Bearer ${liteLLMApiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+    }
 
     const rawModels = response.data?.data || response.data?.models || [];
 
