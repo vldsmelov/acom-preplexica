@@ -115,6 +115,15 @@ If you want to run everything through Docker Compose without installing runtime 
    docker compose up -d --build
    ```
 
+4. Quick smoke checks:
+
+   ```bash
+   curl http://127.0.0.1:3001/api
+   curl http://127.0.0.1:3001/api/models
+   ```
+
+5. If `webSearch` returns poor/empty results, tune `WEB_SEARCH_ENGINES` in `.env` to engines available in your SearXNG instance.
+
 ### Non-Docker Installation
 
 1. Install SearXNG and allow `JSON` format in the SearXNG settings.
