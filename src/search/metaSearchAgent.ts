@@ -25,6 +25,7 @@ import formatChatHistoryAsString from '../utils/formatHistory';
 import eventEmitter from 'events';
 import { StreamEvent } from '@langchain/core/tracers/log_stream';
 import { IterableReadableStream } from '@langchain/core/utils/stream';
+import { getSearchLanguage } from '../config';
 
 export interface MetaSearchAgentType {
   searchAndAnswer: (
@@ -55,6 +56,8 @@ type BasicChainInput = {
 class MetaSearchAgent implements MetaSearchAgentType {
   private config: Config;
   private strParser = new StringOutputParser();
+  private responseLanguageInstruction =
+    'Always respond in Russian (ru-RU), even if sources are in other languages.';
 
   constructor(config: Config) {
     this.config = config;
@@ -204,7 +207,7 @@ class MetaSearchAgent implements MetaSearchAgentType {
           return { query: question, docs: docs };
         } else {
           const res = await searchSearxng(question, {
-            language: 'en',
+            language: getSearchLanguage(),
             engines: this.config.activeEngines,
           });
 
@@ -278,7 +281,10 @@ class MetaSearchAgent implements MetaSearchAgentType {
           .pipe(this.processDocs),
       }),
       ChatPromptTemplate.fromMessages([
-        ['system', this.config.responsePrompt],
+        [
+          'system',
+          `${this.config.responsePrompt}\n\n${this.responseLanguageInstruction}`,
+        ],
         new MessagesPlaceholder('chat_history'),
         ['user', '{query}'],
       ]),

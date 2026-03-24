@@ -8,7 +8,13 @@ OPENAI = "" # OpenAI API key - sk-1234567890abcdef1234567890abcdef
 GROQ = "" # Groq API key - gsk_1234567890abcdef1234567890abcdef
 ANTHROPIC = "" # Anthropic API key - sk-ant-1234567890abcdef1234567890abcdef
 GEMINI = "" # Gemini API key - sk-1234567890abcdef1234567890abcdef
+LITELLM = "" # LiteLLM master key (optional). Prefer LITELLM_MASTER_KEY env var for production.
 
 [API_ENDPOINTS]
 SEARXNG = "http://localhost:32768" # SearxNG API URL
 OLLAMA = "" # Ollama API URL - http://host.docker.internal:11434
+LITELLM = "" # LiteLLM base URL, e.g. https://llm.example.com
+
+[SEARCH]
+LANGUAGE = "ru-RU" # default search language for SearXNG requests
+WEB_SEARCH_ENGINES = [] # optional: ["google", "bing", "duckduckgo"]

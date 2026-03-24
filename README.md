@@ -73,8 +73,11 @@ There are mainly 2 ways of installing Perplexica - With Docker, Without Docker. 
 
    - `OPENAI`: Your OpenAI API key. **You only need to fill this if you wish to use OpenAI's models**.
    - `OLLAMA`: Your Ollama API URL. You should enter it as `http://host.docker.internal:PORT_NUMBER`. If you installed Ollama on port 11434, use `http://host.docker.internal:11434`. For other ports, adjust accordingly. **You need to fill this if you wish to use Ollama's models instead of OpenAI's**.
+   - `LITELLM` + `API_ENDPOINTS.LITELLM`: Optional. Use these if you want to connect Perplexica to a LiteLLM gateway (OpenAI-compatible endpoint). For production, prefer setting `LITELLM_MASTER_KEY` and `LITELLM_BASE_URL` as environment variables instead of storing secrets in `config.toml`.
    - `GROQ`: Your Groq API key. **You only need to fill this if you wish to use Groq's hosted models**.
    - `ANTHROPIC`: Your Anthropic API key. **You only need to fill this if you wish to use Anthropic models**.
+   - `SEARCH.LANGUAGE`: Default web search language. Set to `ru-RU` for Russian.
+   - `SEARCH.WEB_SEARCH_ENGINES`: Optional list of engines for `webSearch` mode, for example `["google", "bing"]`.
 
      **Note**: You can change these after starting Perplexica from the settings dialog.
 

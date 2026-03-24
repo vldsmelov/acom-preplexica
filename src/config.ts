@@ -15,10 +15,16 @@ interface Config {
     GROQ: string;
     ANTHROPIC: string;
     GEMINI: string;
+    LITELLM?: string;
   };
   API_ENDPOINTS: {
     SEARXNG: string;
     OLLAMA: string;
+    LITELLM?: string;
+  };
+  SEARCH?: {
+    LANGUAGE?: string;
+    WEB_SEARCH_ENGINES?: string[];
   };
 }
 
@@ -46,10 +52,35 @@ export const getAnthropicApiKey = () => loadConfig().API_KEYS.ANTHROPIC;
 
 export const getGeminiApiKey = () => loadConfig().API_KEYS.GEMINI;
 
+export const getLiteLLMApiKey = () =>
+  process.env.LITELLM_MASTER_KEY ||
+  process.env.LITELLM_API_KEY ||
+  loadConfig().API_KEYS.LITELLM ||
+  '';
+
 export const getSearxngApiEndpoint = () =>
   process.env.SEARXNG_API_URL || loadConfig().API_ENDPOINTS.SEARXNG;
 
 export const getOllamaApiEndpoint = () => loadConfig().API_ENDPOINTS.OLLAMA;
+
+export const getLiteLLMApiEndpoint = () =>
+  process.env.LITELLM_BASE_URL || loadConfig().API_ENDPOINTS.LITELLM || '';
+
+export const getSearchLanguage = () =>
+  process.env.SEARCH_LANGUAGE || loadConfig().SEARCH?.LANGUAGE || 'ru-RU';
+
+export const getWebSearchEngines = () => {
+  const enginesFromEnv = process.env.WEB_SEARCH_ENGINES
+    ?.split(',')
+    .map((engine) => engine.trim())
+    .filter((engine) => engine.length > 0);
+
+  if (enginesFromEnv && enginesFromEnv.length > 0) {
+    return enginesFromEnv;
+  }
+
+  return loadConfig().SEARCH?.WEB_SEARCH_ENGINES || [];
+};
 
 export const updateConfig = (config: RecursivePartial<Config>) => {
   const currentConfig = loadConfig();

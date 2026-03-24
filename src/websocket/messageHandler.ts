@@ -12,6 +12,7 @@ import MetaSearchAgent, {
   MetaSearchAgentType,
 } from '../search/metaSearchAgent';
 import prompts from '../prompts';
+import { getWebSearchEngines } from '../config';
 
 type Message = {
   messageId: string;
@@ -30,7 +31,7 @@ type WSMessage = {
 
 export const searchHandlers = {
   webSearch: new MetaSearchAgent({
-    activeEngines: [],
+    activeEngines: getWebSearchEngines(),
     queryGeneratorPrompt: prompts.webSearchRetrieverPrompt,
     responsePrompt: prompts.webSearchResponsePrompt,
     rerank: true,
