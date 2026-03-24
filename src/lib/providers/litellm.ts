@@ -41,21 +41,36 @@ export const loadLiteLLMChatModels = async () => {
 
     const rawModels = response.data?.data || response.data?.models || [];
 
-    const chatModels = rawModels.reduce((acc, model) => {
-      const modelId = extractModelId(model);
+    const chatModels = rawModels.reduce((acc, modelInfo) => {
+      const modelId = extractModelId(modelInfo);
 
       if (!modelId) return acc;
 
+      const chatModelClient = new ChatOpenAI({
+        openAIApiKey: liteLLMApiKey,
+        modelName: modelId,
+        temperature: 0.7,
+        configuration: {
+          baseURL: liteLLMApiEndpoint,
+        },
+      });
+
+      const baseInvocationParams =
+        chatModelClient.invocationParams.bind(chatModelClient);
+      (chatModelClient as any).invocationParams = (options?: any) => {
+        const params = baseInvocationParams(options) as Record<string, unknown>;
+
+        // LiteLLM+Ollama model groups can reject unsupported OpenAI params
+        // even when they are defaulted by the SDK.
+        delete params.presence_penalty;
+        delete params.frequency_penalty;
+
+        return params;
+      };
+
       acc[modelId] = {
         displayName: modelId,
-        model: new ChatOpenAI({
-          openAIApiKey: liteLLMApiKey,
-          modelName: modelId,
-          temperature: 0.7,
-          configuration: {
-            baseURL: liteLLMApiEndpoint,
-          },
-        }),
+        model: chatModelClient,
       };
 
       return acc;
