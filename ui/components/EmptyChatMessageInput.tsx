@@ -1,18 +1,22 @@
 import { ArrowRight } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
-import CopilotToggle from './MessageInputActions/Copilot';
 import Focus from './MessageInputActions/Focus';
 import Optimization from './MessageInputActions/Optimization';
 import Attach from './MessageInputActions/Attach';
-import { File } from './ChatWindow';
+import SearchProfile from './MessageInputActions/SearchProfile';
+import { File, SearchProfile as SearchProfileType } from './ChatWindow';
 
 const EmptyChatMessageInput = ({
   sendMessage,
   focusMode,
   setFocusMode,
+  searchProfile,
+  setSearchProfile,
   optimizationMode,
   setOptimizationMode,
+  showAttach,
+  showFocus,
   fileIds,
   setFileIds,
   files,
@@ -21,14 +25,17 @@ const EmptyChatMessageInput = ({
   sendMessage: (message: string) => void;
   focusMode: string;
   setFocusMode: (mode: string) => void;
+  searchProfile: SearchProfileType;
+  setSearchProfile: (profile: SearchProfileType) => void;
   optimizationMode: string;
   setOptimizationMode: (mode: string) => void;
+  showAttach: boolean;
+  showFocus: boolean;
   fileIds: string[];
   setFileIds: (fileIds: string[]) => void;
   files: File[];
   setFiles: (files: File[]) => void;
 }) => {
-  const [copilotEnabled, setCopilotEnabled] = useState(false);
   const [message, setMessage] = useState('');
 
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -84,14 +91,22 @@ const EmptyChatMessageInput = ({
         />
         <div className="flex flex-row items-center justify-between mt-4">
           <div className="flex flex-row items-center space-x-2 lg:space-x-4">
-            <Focus focusMode={focusMode} setFocusMode={setFocusMode} />
-            <Attach
-              fileIds={fileIds}
-              setFileIds={setFileIds}
-              files={files}
-              setFiles={setFiles}
-              showText
+            {showFocus && (
+              <Focus focusMode={focusMode} setFocusMode={setFocusMode} />
+            )}
+            <SearchProfile
+              searchProfile={searchProfile}
+              setSearchProfile={setSearchProfile}
             />
+            {showAttach && (
+              <Attach
+                fileIds={fileIds}
+                setFileIds={setFileIds}
+                files={files}
+                setFiles={setFiles}
+                showText
+              />
+            )}
           </div>
           <div className="flex flex-row items-center space-x-1 sm:space-x-4">
             <Optimization

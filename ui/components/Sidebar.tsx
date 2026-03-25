@@ -1,10 +1,11 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import { getUIPreferences } from '@/lib/uiPreferences';
 import { BookOpenText, Home, Search, SquarePen, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useSelectedLayoutSegments } from 'next/navigation';
-import React, { useState, type ReactNode } from 'react';
+import React, { useEffect, useState, type ReactNode } from 'react';
 import Layout from './Layout';
 import SettingsDialog from './SettingsDialog';
 
@@ -18,6 +19,12 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
   const segments = useSelectedLayoutSegments();
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showDiscoverTab, setShowDiscoverTab] = useState(false);
+
+  useEffect(() => {
+    const preferences = getUIPreferences();
+    setShowDiscoverTab(preferences.showDiscoverTab);
+  }, []);
 
   const navLinks = [
     {
@@ -26,12 +33,16 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
       active: segments.length === 0 || segments.includes('c'),
       label: 'Home',
     },
-    {
-      icon: Search,
-      href: '/discover',
-      active: segments.includes('discover'),
-      label: 'Discover',
-    },
+    ...(showDiscoverTab
+      ? [
+          {
+            icon: Search,
+            href: '/discover',
+            active: segments.includes('discover'),
+            label: 'Discover',
+          },
+        ]
+      : []),
     {
       icon: BookOpenText,
       href: '/library',

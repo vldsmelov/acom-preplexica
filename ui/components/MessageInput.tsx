@@ -2,9 +2,9 @@ import { cn } from '@/lib/utils';
 import { ArrowUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
-import Attach from './MessageInputActions/Attach';
 import CopilotToggle from './MessageInputActions/Copilot';
-import { File } from './ChatWindow';
+import SearchProfile from './MessageInputActions/SearchProfile';
+import { File, SearchProfile as SearchProfileType } from './ChatWindow';
 import AttachSmall from './MessageInputActions/AttachSmall';
 
 const MessageInput = ({
@@ -14,6 +14,9 @@ const MessageInput = ({
   setFileIds,
   files,
   setFiles,
+  searchProfile,
+  setSearchProfile,
+  showAttach,
 }: {
   sendMessage: (message: string) => void;
   loading: boolean;
@@ -21,6 +24,9 @@ const MessageInput = ({
   setFileIds: (fileIds: string[]) => void;
   files: File[];
   setFiles: (files: File[]) => void;
+  searchProfile: SearchProfileType;
+  setSearchProfile: (profile: SearchProfileType) => void;
+  showAttach: boolean;
 }) => {
   const [copilotEnabled, setCopilotEnabled] = useState(false);
   const [message, setMessage] = useState('');
@@ -79,7 +85,7 @@ const MessageInput = ({
         mode === 'multi' ? 'flex-col rounded-lg' : 'flex-row rounded-full',
       )}
     >
-      {mode === 'single' && (
+      {mode === 'single' && showAttach && (
         <AttachSmall
           fileIds={fileIds}
           setFileIds={setFileIds}
@@ -99,6 +105,10 @@ const MessageInput = ({
       />
       {mode === 'single' && (
         <div className="flex flex-row items-center space-x-4">
+          <SearchProfile
+            searchProfile={searchProfile}
+            setSearchProfile={setSearchProfile}
+          />
           <CopilotToggle
             copilotEnabled={copilotEnabled}
             setCopilotEnabled={setCopilotEnabled}
@@ -113,13 +123,21 @@ const MessageInput = ({
       )}
       {mode === 'multi' && (
         <div className="flex flex-row items-center justify-between w-full pt-2">
-          <AttachSmall
-            fileIds={fileIds}
-            setFileIds={setFileIds}
-            files={files}
-            setFiles={setFiles}
-          />
-          <div className="flex flex-row items-center space-x-4">
+          {showAttach ? (
+            <AttachSmall
+              fileIds={fileIds}
+              setFileIds={setFileIds}
+              files={files}
+              setFiles={setFiles}
+            />
+          ) : (
+            <div />
+          )}
+          <div className="flex flex-row items-center space-x-3">
+            <SearchProfile
+              searchProfile={searchProfile}
+              setSearchProfile={setSearchProfile}
+            />
             <CopilotToggle
               copilotEnabled={copilotEnabled}
               setCopilotEnabled={setCopilotEnabled}

@@ -25,6 +25,7 @@ type WSMessage = {
   optimizationMode: 'speed' | 'balanced' | 'quality';
   type: string;
   focusMode: string;
+  searchProfile?: 'default' | 'yandexOnly';
   history: Array<[string, string]>;
   files: Array<string>;
 };
@@ -32,6 +33,15 @@ type WSMessage = {
 export const searchHandlers = {
   webSearch: new MetaSearchAgent({
     activeEngines: getWebSearchEngines(),
+    queryGeneratorPrompt: prompts.webSearchRetrieverPrompt,
+    responsePrompt: prompts.webSearchResponsePrompt,
+    rerank: true,
+    rerankThreshold: 0.3,
+    searchWeb: true,
+    summarizer: true,
+  }),
+  webSearchYandexOnly: new MetaSearchAgent({
+    activeEngines: ['yandex'],
     queryGeneratorPrompt: prompts.webSearchRetrieverPrompt,
     responsePrompt: prompts.webSearchResponsePrompt,
     rerank: true,
@@ -84,6 +94,19 @@ export const searchHandlers = {
     searchWeb: true,
     summarizer: false,
   }),
+};
+
+const resolveSearchProfile = (searchProfile?: string) =>
+  searchProfile === 'yandexOnly' ? 'yandexOnly' : 'default';
+
+export const getSearchHandler = (focusMode: string, searchProfile?: string) => {
+  const resolvedSearchProfile = resolveSearchProfile(searchProfile);
+
+  if (focusMode === 'webSearch' && resolvedSearchProfile === 'yandexOnly') {
+    return searchHandlers.webSearchYandexOnly;
+  }
+
+  return searchHandlers[focusMode];
 };
 
 const handleEmitterEvents = (
@@ -186,8 +209,10 @@ export const handleMessage = async (
     });
 
     if (parsedWSMessage.type === 'message') {
-      const handler: MetaSearchAgentType =
-        searchHandlers[parsedWSMessage.focusMode];
+      const handler: MetaSearchAgentType = getSearchHandler(
+        parsedWSMessage.focusMode,
+        parsedWSMessage.searchProfile,
+      );
 
       if (handler) {
         try {

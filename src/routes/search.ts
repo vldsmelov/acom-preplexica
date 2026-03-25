@@ -7,7 +7,7 @@ import {
   getAvailableChatModelProviders,
   getAvailableEmbeddingModelProviders,
 } from '../lib/providers';
-import { searchHandlers } from '../websocket/messageHandler';
+import { getSearchHandler } from '../websocket/messageHandler';
 import { AIMessage, BaseMessage, HumanMessage } from '@langchain/core/messages';
 import { MetaSearchAgentType } from '../search/metaSearchAgent';
 
@@ -28,6 +28,7 @@ interface embeddingModel {
 interface ChatRequestBody {
   optimizationMode: 'speed' | 'balanced';
   focusMode: string;
+  searchProfile?: 'default' | 'yandexOnly';
   chatModel?: chatModel;
   embeddingModel?: embeddingModel;
   query: string;
@@ -116,7 +117,10 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Invalid model selected' });
     }
 
-    const searchHandler: MetaSearchAgentType = searchHandlers[body.focusMode];
+    const searchHandler: MetaSearchAgentType = getSearchHandler(
+      body.focusMode,
+      body.searchProfile,
+    );
 
     if (!searchHandler) {
       return res.status(400).json({ message: 'Invalid focus mode' });

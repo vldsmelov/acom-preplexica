@@ -1,5 +1,10 @@
 import { cn } from '@/lib/utils';
 import {
+  UIPreferences,
+  getUIPreferences,
+  saveUIPreferences,
+} from '@/lib/uiPreferences';
+import {
   Dialog,
   DialogPanel,
   DialogTitle,
@@ -53,6 +58,28 @@ export const Select = ({ className, options, ...restProps }: SelectProps) => {
   );
 };
 
+const Toggle = ({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) => {
+  return (
+    <label className="flex items-center justify-between gap-3 rounded-lg border border-light-200 dark:border-dark-200 bg-light-secondary dark:bg-dark-secondary px-3 py-2 text-sm text-black/80 dark:text-white/80">
+      <span>{label}</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="h-4 w-4 accent-[#24A0ED]"
+      />
+    </label>
+  );
+};
+
 interface SettingsType {
   chatModelProviders: {
     [key: string]: [Record<string, any>];
@@ -92,6 +119,8 @@ const SettingsDialog = ({
   >(null);
   const [customOpenAIApiKey, setCustomOpenAIApiKey] = useState<string>('');
   const [customOpenAIBaseURL, setCustomOpenAIBaseURL] = useState<string>('');
+  const [uiPreferences, setUiPreferences] =
+    useState<UIPreferences>(getUIPreferences);
   const [isLoading, setIsLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -149,6 +178,7 @@ const SettingsDialog = ({
         setSelectedEmbeddingModel(embeddingModel);
         setCustomOpenAIApiKey(localStorage.getItem('openAIApiKey') || '');
         setCustomOpenAIBaseURL(localStorage.getItem('openAIBaseURL') || '');
+        setUiPreferences(getUIPreferences());
         setChatModels(data.chatModelProviders || {});
         setEmbeddingModels(data.embeddingModelProviders || {});
         setIsLoading(false);
@@ -180,6 +210,7 @@ const SettingsDialog = ({
       localStorage.setItem('embeddingModel', selectedEmbeddingModel!);
       localStorage.setItem('openAIApiKey', customOpenAIApiKey!);
       localStorage.setItem('openAIBaseURL', customOpenAIBaseURL!);
+      saveUIPreferences(uiPreferences);
     } catch (err) {
       console.log(err);
     } finally {
@@ -230,6 +261,41 @@ const SettingsDialog = ({
                         Theme
                       </p>
                       <ThemeSwitcher />
+                    </div>
+                    <div className="flex flex-col space-y-2">
+                      <p className="text-black/70 dark:text-white/70 text-sm">
+                        Interface
+                      </p>
+                      <Toggle
+                        label="Show Discover tab"
+                        checked={uiPreferences.showDiscoverTab}
+                        onChange={(checked) =>
+                          setUiPreferences({
+                            ...uiPreferences,
+                            showDiscoverTab: checked,
+                          })
+                        }
+                      />
+                      <Toggle
+                        label="Show Attach in chat"
+                        checked={uiPreferences.showAttach}
+                        onChange={(checked) =>
+                          setUiPreferences({
+                            ...uiPreferences,
+                            showAttach: checked,
+                          })
+                        }
+                      />
+                      <Toggle
+                        label="Show Focus in chat"
+                        checked={uiPreferences.showFocus}
+                        onChange={(checked) =>
+                          setUiPreferences({
+                            ...uiPreferences,
+                            showFocus: checked,
+                          })
+                        }
+                      />
                     </div>
                     {config.chatModelProviders && (
                       <div className="flex flex-col space-y-1">
@@ -413,86 +479,93 @@ const SettingsDialog = ({
                         />
                       </div>
                     )}
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-black/70 dark:text-white/70 text-sm">
-                        OpenAI API Key
-                      </p>
-                      <Input
-                        type="text"
-                        placeholder="OpenAI API Key"
-                        defaultValue={config.openaiApiKey}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            openaiApiKey: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-black/70 dark:text-white/70 text-sm">
-                        Ollama API URL
-                      </p>
-                      <Input
-                        type="text"
-                        placeholder="Ollama API URL"
-                        defaultValue={config.ollamaApiUrl}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            ollamaApiUrl: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-black/70 dark:text-white/70 text-sm">
-                        GROQ API Key
-                      </p>
-                      <Input
-                        type="text"
-                        placeholder="GROQ API Key"
-                        defaultValue={config.groqApiKey}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            groqApiKey: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-black/70 dark:text-white/70 text-sm">
-                        Anthropic API Key
-                      </p>
-                      <Input
-                        type="text"
-                        placeholder="Anthropic API key"
-                        defaultValue={config.anthropicApiKey}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            anthropicApiKey: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-black/70 dark:text-white/70 text-sm">
-                        Gemini API Key
-                      </p>
-                      <Input
-                        type="text"
-                        placeholder="Gemini API key"
-                        defaultValue={config.geminiApiKey}
-                        onChange={(e) =>
-                          setConfig({
-                            ...config,
-                            geminiApiKey: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
+                    <details className="rounded-lg border border-light-200 dark:border-dark-200 bg-light-primary/50 dark:bg-dark-primary/40 p-3">
+                      <summary className="cursor-pointer text-black/80 dark:text-white/80 text-sm font-medium">
+                        Provider keys and endpoints
+                      </summary>
+                      <div className="flex flex-col space-y-3 mt-3">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-black/70 dark:text-white/70 text-sm">
+                            OpenAI API Key
+                          </p>
+                          <Input
+                            type="text"
+                            placeholder="OpenAI API Key"
+                            defaultValue={config.openaiApiKey}
+                            onChange={(e) =>
+                              setConfig({
+                                ...config,
+                                openaiApiKey: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-black/70 dark:text-white/70 text-sm">
+                            Ollama API URL
+                          </p>
+                          <Input
+                            type="text"
+                            placeholder="Ollama API URL"
+                            defaultValue={config.ollamaApiUrl}
+                            onChange={(e) =>
+                              setConfig({
+                                ...config,
+                                ollamaApiUrl: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-black/70 dark:text-white/70 text-sm">
+                            GROQ API Key
+                          </p>
+                          <Input
+                            type="text"
+                            placeholder="GROQ API Key"
+                            defaultValue={config.groqApiKey}
+                            onChange={(e) =>
+                              setConfig({
+                                ...config,
+                                groqApiKey: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-black/70 dark:text-white/70 text-sm">
+                            Anthropic API Key
+                          </p>
+                          <Input
+                            type="text"
+                            placeholder="Anthropic API key"
+                            defaultValue={config.anthropicApiKey}
+                            onChange={(e) =>
+                              setConfig({
+                                ...config,
+                                anthropicApiKey: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-black/70 dark:text-white/70 text-sm">
+                            Gemini API Key
+                          </p>
+                          <Input
+                            type="text"
+                            placeholder="Gemini API key"
+                            defaultValue={config.geminiApiKey}
+                            onChange={(e) =>
+                              setConfig({
+                                ...config,
+                                geminiApiKey: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </details>
                   </div>
                 )}
                 {isLoading && (

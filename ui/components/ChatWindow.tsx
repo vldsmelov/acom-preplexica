@@ -9,6 +9,7 @@ import crypto from 'crypto';
 import { toast } from 'sonner';
 import { useSearchParams } from 'next/navigation';
 import { getSuggestions } from '@/lib/actions';
+import { getUIPreferences } from '@/lib/uiPreferences';
 import { Settings } from 'lucide-react';
 import SettingsDialog from './SettingsDialog';
 import NextError from 'next/error';
@@ -28,6 +29,10 @@ export interface File {
   fileExtension: string;
   fileId: string;
 }
+
+export type SearchProfile = 'default' | 'yandexOnly';
+
+const SEARCH_PROFILE_STORAGE_KEY = 'searchProfile';
 
 const useSocket = (
   url: string,
@@ -410,12 +415,33 @@ const ChatWindow = ({ id }: { id?: string }) => {
 
   const [focusMode, setFocusMode] = useState('webSearch');
   const [optimizationMode, setOptimizationMode] = useState('speed');
+  const [searchProfile, setSearchProfile] = useState<SearchProfile>('default');
+  const [showAttach, setShowAttach] = useState(false);
+  const [showFocus, setShowFocus] = useState(false);
 
   const [isMessagesLoaded, setIsMessagesLoaded] = useState(false);
 
   const [notFound, setNotFound] = useState(false);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  useEffect(() => {
+    const storedSearchProfile = localStorage.getItem(SEARCH_PROFILE_STORAGE_KEY);
+    const preferences = getUIPreferences();
+
+    if (storedSearchProfile === 'yandexOnly') {
+      setSearchProfile('yandexOnly');
+    } else {
+      setSearchProfile('default');
+    }
+
+    setShowAttach(preferences.showAttach);
+    setShowFocus(preferences.showFocus);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(SEARCH_PROFILE_STORAGE_KEY, searchProfile);
+  }, [searchProfile]);
 
   useEffect(() => {
     if (
@@ -493,6 +519,7 @@ const ChatWindow = ({ id }: { id?: string }) => {
         },
         files: fileIds,
         focusMode: focusMode,
+        searchProfile: searchProfile,
         optimizationMode: optimizationMode,
         history: [...chatHistory, ['human', message]],
       }),
@@ -662,6 +689,9 @@ const ChatWindow = ({ id }: { id?: string }) => {
               setFileIds={setFileIds}
               files={files}
               setFiles={setFiles}
+              searchProfile={searchProfile}
+              setSearchProfile={setSearchProfile}
+              showAttach={showAttach}
             />
           </>
         ) : (
@@ -669,12 +699,16 @@ const ChatWindow = ({ id }: { id?: string }) => {
             sendMessage={sendMessage}
             focusMode={focusMode}
             setFocusMode={setFocusMode}
+            searchProfile={searchProfile}
+            setSearchProfile={setSearchProfile}
             optimizationMode={optimizationMode}
             setOptimizationMode={setOptimizationMode}
             fileIds={fileIds}
             setFileIds={setFileIds}
             files={files}
             setFiles={setFiles}
+            showAttach={showAttach}
+            showFocus={showFocus}
           />
         )}
       </div>
