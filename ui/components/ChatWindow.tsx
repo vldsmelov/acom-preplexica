@@ -20,6 +20,7 @@ export type Message = {
   createdAt: Date;
   content: string;
   role: 'user' | 'assistant';
+  type?: 'default' | 'technical';
   suggestions?: string[];
   sources?: Document[];
 };
@@ -494,9 +495,26 @@ const ChatWindow = ({ id }: { id?: string }) => {
   }, [isMessagesLoaded, isWSReady]);
 
   const sendMessage = async (message: string, messageId?: string) => {
+    const appendTechnicalMessage = (errorText: string) => {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          content: errorText,
+          messageId: crypto.randomBytes(7).toString('hex'),
+          chatId: chatId!,
+          role: 'assistant',
+          type: 'technical',
+          createdAt: new Date(),
+        },
+      ]);
+    };
+
     if (loading) return;
     if (!ws || ws.readyState !== WebSocket.OPEN) {
       toast.error('Cannot send message while disconnected');
+      appendTechnicalMessage(
+        'Соединение с сервером недоступно. Сообщение не отправлено.',
+      );
       return;
     }
 
@@ -541,6 +559,8 @@ const ChatWindow = ({ id }: { id?: string }) => {
 
       if (data.type === 'error') {
         toast.error(data.data);
+        appendTechnicalMessage(data.data);
+        ws?.removeEventListener('message', messageHandler);
         setLoading(false);
         return;
       }

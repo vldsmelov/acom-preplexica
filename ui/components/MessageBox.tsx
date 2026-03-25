@@ -75,7 +75,20 @@ const MessageBox = ({
         </div>
       )}
 
-      {message.role === 'assistant' && (
+      {message.role === 'assistant' && message.type === 'technical' && (
+        <div className="w-full lg:w-9/12">
+          <div className="rounded-lg border border-red-400 bg-red-50/70 dark:bg-red-950/25 px-4 py-3">
+            <h3 className="text-sm font-semibold text-red-700 dark:text-red-300">
+              Техническое сообщение
+            </h3>
+            <p className="mt-2 text-sm text-red-700/90 dark:text-red-200/90 whitespace-pre-wrap">
+              {message.content}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {message.role === 'assistant' && message.type !== 'technical' && (
         <div className="flex flex-col space-y-9 lg:space-y-0 lg:flex-row lg:justify-between lg:space-x-9">
           <div
             ref={dividerRef}
