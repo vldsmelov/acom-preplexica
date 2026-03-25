@@ -63,6 +63,36 @@ class MetaSearchAgent implements MetaSearchAgentType {
     this.config = config;
   }
 
+  private assertSearchEngineHealth(
+    unresponsiveEngines: [string, string][],
+    activeEngines: string[],
+    resultCount: number,
+  ) {
+    if (resultCount > 0 || activeEngines.length === 0) {
+      return;
+    }
+
+    const requestedEngines = activeEngines.map((engine) =>
+      engine.toLowerCase(),
+    );
+
+    const unresponsiveRequestedEngines = unresponsiveEngines.filter(
+      ([engine]) => requestedEngines.includes(engine.toLowerCase()),
+    );
+
+    if (unresponsiveRequestedEngines.length !== requestedEngines.length) {
+      return;
+    }
+
+    const details = unresponsiveRequestedEngines
+      .map(([engine, reason]) => `${engine}: ${reason}`)
+      .join(', ');
+
+    throw new Error(
+      `SearXNG search engines are unavailable (${details}). For Yandex this is usually CAPTCHA/anti-bot blocking on the server IP.`,
+    );
+  }
+
   private async createSearchRetrieverChain(llm: BaseChatModel) {
     (llm as unknown as ChatOpenAI).temperature = 0;
 
@@ -210,6 +240,12 @@ class MetaSearchAgent implements MetaSearchAgentType {
             language: getSearchLanguage(),
             engines: this.config.activeEngines,
           });
+
+          this.assertSearchEngineHealth(
+            res.unresponsiveEngines,
+            this.config.activeEngines,
+            res.results.length,
+          );
 
           const documents = res.results.map(
             (result) =>
@@ -435,32 +471,43 @@ class MetaSearchAgent implements MetaSearchAgentType {
     stream: IterableReadableStream<StreamEvent>,
     emitter: eventEmitter,
   ) {
-    for await (const event of stream) {
-      if (
-        event.event === 'on_chain_end' &&
-        event.name === 'FinalSourceRetriever'
-      ) {
-        ``;
-        emitter.emit(
-          'data',
-          JSON.stringify({ type: 'sources', data: event.data.output }),
-        );
+    try {
+      for await (const event of stream) {
+        if (
+          event.event === 'on_chain_end' &&
+          event.name === 'FinalSourceRetriever'
+        ) {
+          emitter.emit(
+            'data',
+            JSON.stringify({ type: 'sources', data: event.data.output }),
+          );
+        }
+        if (
+          event.event === 'on_chain_stream' &&
+          event.name === 'FinalResponseGenerator'
+        ) {
+          emitter.emit(
+            'data',
+            JSON.stringify({ type: 'response', data: event.data.chunk }),
+          );
+        }
+        if (
+          event.event === 'on_chain_end' &&
+          event.name === 'FinalResponseGenerator'
+        ) {
+          emitter.emit('end');
+        }
       }
-      if (
-        event.event === 'on_chain_stream' &&
-        event.name === 'FinalResponseGenerator'
-      ) {
-        emitter.emit(
-          'data',
-          JSON.stringify({ type: 'response', data: event.data.chunk }),
-        );
-      }
-      if (
-        event.event === 'on_chain_end' &&
-        event.name === 'FinalResponseGenerator'
-      ) {
-        emitter.emit('end');
-      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Search failed unexpectedly.';
+      emitter.emit(
+        'error',
+        JSON.stringify({
+          type: 'error',
+          data: message,
+        }),
+      );
     }
   }
 

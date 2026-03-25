@@ -19,6 +19,8 @@ interface SearxngSearchResult {
   iframe_src?: string;
 }
 
+type UnresponsiveEngine = [string, string];
+
 export const searchSearxng = async (
   query: string,
   opts?: SearxngSearchOptions,
@@ -42,6 +44,28 @@ export const searchSearxng = async (
 
   const results: SearxngSearchResult[] = res.data.results;
   const suggestions: string[] = res.data.suggestions;
+  const unresponsiveEngines: UnresponsiveEngine[] =
+    res.data.unresponsive_engines || [];
 
-  return { results, suggestions };
+  const requestedEngines =
+    opts?.engines?.map((engine) => engine.trim().toLowerCase()) || [];
+  const unresponsiveRequestedEngines = unresponsiveEngines.filter(([engine]) =>
+    requestedEngines.includes(engine.toLowerCase()),
+  );
+
+  if (
+    requestedEngines.length > 0 &&
+    results.length === 0 &&
+    unresponsiveRequestedEngines.length === requestedEngines.length
+  ) {
+    const details = unresponsiveRequestedEngines
+      .map(([engine, reason]) => `${engine}: ${reason}`)
+      .join(', ');
+
+    throw new Error(
+      `SearXNG engines unavailable (${details}). This is usually caused by CAPTCHA or anti-bot blocking.`,
+    );
+  }
+
+  return { results, suggestions, unresponsiveEngines };
 };
