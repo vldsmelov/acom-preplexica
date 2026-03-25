@@ -256,9 +256,6 @@ const useSocket = (
             clearTimeout(timeoutId);
             console.debug(new Date(), 'ws:connected');
           }
-          if (data.type === 'error') {
-            toast.error(data.data);
-          }
         });
 
         ws.onerror = () => {
@@ -511,7 +508,6 @@ const ChatWindow = ({ id }: { id?: string }) => {
 
     if (loading) return;
     if (!ws || ws.readyState !== WebSocket.OPEN) {
-      toast.error('Cannot send message while disconnected');
       appendTechnicalMessage(
         'Соединение с сервером недоступно. Сообщение не отправлено.',
       );
@@ -558,7 +554,6 @@ const ChatWindow = ({ id }: { id?: string }) => {
       const data = JSON.parse(e.data);
 
       if (data.type === 'error') {
-        toast.error(data.data);
         appendTechnicalMessage(data.data);
         ws?.removeEventListener('message', messageHandler);
         setLoading(false);
